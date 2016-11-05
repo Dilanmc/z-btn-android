@@ -1,6 +1,7 @@
 package spalmalo.z_btn.adapters;
 
 
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,19 +9,18 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
+import spalmalo.z_btn.Constants;
 import spalmalo.z_btn.R;
+import spalmalo.z_btn.TaskClickListener;
 import spalmalo.z_btn.models.Task;
 
 public class ListTasksAdapter extends RecyclerView.Adapter<ListTasksViewHolder> {
-    List<String> tasksList;
-    private boolean isPlay;
+    private List<Task> tasksList;
+    private TaskClickListener clickListener;
 
-    private boolean isPlay() {
-        return isPlay;
-    }
-
-    public ListTasksAdapter(List<String> tasksList) {
-        this.tasksList = tasksList;
+    public ListTasksAdapter(List<Task> tasks, TaskClickListener clickListener) {
+        this.tasksList = tasks;
+        this.clickListener = clickListener;
     }
 
 
@@ -31,20 +31,44 @@ public class ListTasksAdapter extends RecyclerView.Adapter<ListTasksViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(final ListTasksViewHolder holder, int position) {
-        String task = tasksList.get(position);
-        holder.textTask.setText(task);
+    public void onBindViewHolder(final ListTasksViewHolder holder, final int position) {
+        holder.textTask.setText(tasksList.get(position).getTitle());
 
+        holder.checkBoxFinish.setChecked(tasksList.get(position).getStatus().equals(Constants.TASK_STATUS_FINISHED));
+        holder.checkBoxFinish.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                clickListener.finished(tasksList.get(position).getId());
+            }
+        });
+
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                clickListener.longClick(tasksList.get(position).getId());
+                return true;
+            }
+        });
+
+        holder.btnPlayAndPause.setVisibility(tasksList.get(position).getStatus()
+                .equals(Constants.TASK_STATUS_FINISHED) ? View.GONE : View.VISIBLE);
+        holder.btnPlayAndPause.setImageResource(tasksList.get(position).getStatus()
+                .equals(Constants.TASK_STATUS_STOPPED) ? R.drawable.ic_play_arrow : R.drawable.ic_pause);
         holder.btnPlayAndPause.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                if (isPlay() == false) {
-                    holder.btnPlayAndPause.setImageResource(R.drawable.ic_pause);
-                } else {
+            public void onClick(View view) {
+                if (tasksList.get(position).getStatus().equals(Constants.TASK_STATUS_STOPPED)) {
                     holder.btnPlayAndPause.setImageResource(R.drawable.ic_play_arrow);
+                    holder.time.setTextColor(Color.rgb(230, 187, 0));
+                    clickListener.started(tasksList.get(position).getId());
+                } else if (tasksList.get(position).getStatus().equals(Constants.TASK_STATUS_STARTED)) {
+                    holder.btnPlayAndPause.setImageResource(R.drawable.ic_pause);
+                    holder.time.setTextColor(Color.rgb(0, 0, 0));
+                    clickListener.stopped(tasksList.get(position).getId());
                 }
             }
         });
+
     }
 
     @Override

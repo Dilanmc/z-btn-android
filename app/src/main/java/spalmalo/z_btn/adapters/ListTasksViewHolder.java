@@ -2,6 +2,7 @@ package spalmalo.z_btn.adapters;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -15,6 +16,10 @@ public class ListTasksViewHolder extends RecyclerView.ViewHolder {
     TextView textTask;
     @BindView(R.id.btn_play_and_pause)
     ImageButton btnPlayAndPause;
+    @BindView(R.id.checkboxFinish)
+    CheckBox checkBoxFinish;
+    @BindView(R.id.time)
+    TextView time;
 
     public ListTasksViewHolder(View itemView) {
         super(itemView);
