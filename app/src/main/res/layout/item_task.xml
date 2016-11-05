@@ -37,6 +37,7 @@
 
 
     <LinearLayout
+        android:id="@+id/task_container"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="right"

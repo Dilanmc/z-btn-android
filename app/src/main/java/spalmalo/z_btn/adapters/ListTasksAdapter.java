@@ -54,16 +54,30 @@ public class ListTasksAdapter extends RecyclerView.Adapter<ListTasksViewHolder> 
                 .equals(Constants.TASK_STATUS_FINISHED) ? View.GONE : View.VISIBLE);
         holder.btnPlayAndPause.setImageResource(tasksList.get(position).getStatus()
                 .equals(Constants.TASK_STATUS_STOPPED) ? R.drawable.ic_play_arrow : R.drawable.ic_pause);
+
+        if (tasksList.get(position).getStatus().equals(Constants.TASK_STATUS_STOPPED)) {
+            holder.taskCointainer.setBackgroundColor(Color.parseColor("#00000000"));
+        } else {
+            holder.taskCointainer.setBackgroundColor(Color.parseColor("#80E6BB00"));
+        }
+
+        if (tasksList.get(position).getStatus().equals(Constants.TASK_STATUS_STARTED)) {
+            holder.taskCointainer.setBackgroundColor(Color.parseColor("#80E6BB00"));
+        } else {
+            holder.taskCointainer.setBackgroundColor(Color.parseColor("#00000000"));
+        }
+
+
         holder.btnPlayAndPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (tasksList.get(position).getStatus().equals(Constants.TASK_STATUS_STOPPED)) {
                     holder.btnPlayAndPause.setImageResource(R.drawable.ic_play_arrow);
-                    holder.time.setTextColor(Color.rgb(230, 187, 0));
+                    holder.taskCointainer.setBackgroundColor(Color.parseColor("#00000000"));
                     clickListener.started(tasksList.get(position).getId());
                 } else if (tasksList.get(position).getStatus().equals(Constants.TASK_STATUS_STARTED)) {
                     holder.btnPlayAndPause.setImageResource(R.drawable.ic_pause);
-                    holder.time.setTextColor(Color.rgb(0, 0, 0));
+                    holder.taskCointainer.setBackgroundColor(Color.parseColor("#80E6BB00"));
                     clickListener.stopped(tasksList.get(position).getId());
                 }
             }

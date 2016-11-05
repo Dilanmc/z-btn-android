@@ -4,6 +4,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import butterknife.BindView;
@@ -20,6 +21,8 @@ public class ListTasksViewHolder extends RecyclerView.ViewHolder {
     CheckBox checkBoxFinish;
     @BindView(R.id.time)
     TextView time;
+    @BindView(R.id.task_container)
+    LinearLayout taskCointainer;
 
     public ListTasksViewHolder(View itemView) {
         super(itemView);

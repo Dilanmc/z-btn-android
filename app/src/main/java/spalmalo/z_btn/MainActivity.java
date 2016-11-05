@@ -81,6 +81,11 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
                     Toast.makeText(MainActivity.this, R.string.show_finish_task, Toast.LENGTH_SHORT).show();
                 }
                 listFinishedTask.setVisibility(listFinishedTask.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+                if (listFinishedTask.getVisibility() == View.VISIBLE) {
+                    finishedTaskText.setText(R.string.closeFinishedText);
+                } else {
+                    finishedTaskText.setText(R.string.show_finish_task);
+                }
             }
         });
 
@@ -163,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
                 });
     }
 
-    private void addNewTask(final String title){
+    private void addNewTask(final String title) {
         realm.beginTransaction();
         final Task task = new Task();
         task.setId(generateTaskId());
@@ -178,14 +183,14 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
         });
     }
 
-    private int generateTaskId(){
+    private int generateTaskId() {
         RealmResults<Task> results = realm.where(Task.class).findAll();
-        if(results.size()>0){
+        if (results.size() > 0) {
             int max = 0;
-            for(Task task : results){
-                if(task.getId()>max) max = task.getId();
+            for (Task task : results) {
+                if (task.getId() > max) max = task.getId();
             }
-            Log.e("log","max id = "+ max);
+            Log.e("log", "max id = " + max);
             return ++max;
         }
         return 0;

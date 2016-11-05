@@ -1,6 +1,7 @@
 <resources>
-    <string name="app_name">z-btn</string>
+    <string name="app_name">Z-BTN</string>
     <string name="empty_list">Список задач пуст</string>
     <string name="show_finish_task">Показать завершенные задачи</string>
-    <string name="my_task">My Tasks</string>
+    <string name="my_task">       My Tasks</string>
+    <string name="closeFinishedText">Закрыть завершенные задачи</string>
 </resources>
