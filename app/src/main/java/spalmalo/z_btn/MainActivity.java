@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
                 .customView(R.layout.item_task_text, Boolean.parseBoolean(null))
                 .positiveText("Create")
                 .negativeText("Cancel")
-                .positiveColor(Color.YELLOW)
+                .positiveColor(Color.rgb(230, 187, 0))
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
