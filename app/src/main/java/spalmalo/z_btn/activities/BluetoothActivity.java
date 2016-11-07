@@ -1,4 +1,4 @@
-package spalmalo.z_btn;
+package spalmalo.z_btn.activities;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
+
+import spalmalo.z_btn.R;
 
 /**
  * Created by dilan on 11/4/16.

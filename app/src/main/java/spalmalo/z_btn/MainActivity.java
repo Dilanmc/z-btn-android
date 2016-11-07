@@ -1,5 +1,6 @@
 package spalmalo.z_btn;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,6 +12,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
     private RecyclerView.LayoutManager mLayoutManager;
     private RecyclerView.LayoutManager mLayoutManagerFinished;
     private MaterialDialog dialog, dialogDeleteTask;
+    private InputMethodManager inputMgr;
     private EditText taskText;
     private Realm realm;
 
@@ -129,16 +132,33 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                         addNewTask(taskText.getText().toString());
                         tasksAdapter.notifyDataSetChanged();
+                        inputMgr = (InputMethodManager) getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        inputMgr.hideSoftInputFromWindow(taskText.getWindowToken(), 0);
                     }
+
                 })
+
                 .onNegative(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        inputMgr = (InputMethodManager) getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        inputMgr.hideSoftInputFromWindow(taskText.getWindowToken(), 0);
                         dialog.cancel();
                     }
                 })
                 .build();
         taskText = (EditText) dialog.findViewById(R.id.edit_task_text);
+
+        taskText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                inputMgr = (InputMethodManager) getApplicationContext().
+                        getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputMgr.toggleSoftInput(InputMethodManager.SHOW_FORCED,
+                        InputMethodManager.HIDE_IMPLICIT_ONLY);
+            }
+        });
+        taskText.requestFocus();
         dialog.show();
     }
 
