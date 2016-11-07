@@ -8,29 +8,41 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
-
+import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
 import spalmalo.z_btn.Constants;
 import spalmalo.z_btn.R;
 import spalmalo.z_btn.TaskClickListener;
 import spalmalo.z_btn.models.Task;
 
 public class ListTasksAdapter extends RecyclerView.Adapter<ListTasksViewHolder> {
-    private List<Task> tasksList;
+    private RealmChangeListener<RealmResults<Task>> tasksChangeListener;
+    private RealmResults<Task> tasksList;
     private TaskClickListener clickListener;
     private CountDownTimer mTimer;
 
-
-    public ListTasksAdapter(List<Task> tasks, TaskClickListener clickListener) {
+    public ListTasksAdapter(RealmResults<Task> tasks, TaskClickListener clickListener) {
         this.tasksList = tasks;
         this.clickListener = clickListener;
+        tasksChangeListener = new RealmChangeListener<RealmResults<Task>>() {
+            @Override
+            public void onChange(RealmResults<Task> element) {
+                notifyDataSetChanged();
+            }
+        };
     }
 
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        tasksList.addChangeListener(tasksChangeListener);
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        tasksList.removeChangeListener(tasksChangeListener);
+    }
 
     @Override
     public ListTasksViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

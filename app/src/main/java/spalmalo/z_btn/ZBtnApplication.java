@@ -3,6 +3,7 @@ package spalmalo.z_btn;
 import android.app.Application;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 
 public class ZBtnApplication extends Application {
@@ -11,5 +12,10 @@ public class ZBtnApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Realm.init(this);
+        RealmConfiguration config = new RealmConfiguration
+                .Builder()
+                .deleteRealmIfMigrationNeeded()
+                .build();
+        Realm.setDefaultConfiguration(config);
     }
 }

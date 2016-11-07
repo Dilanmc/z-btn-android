@@ -5,11 +5,11 @@ package spalmalo.z_btn;
  */
 
 public interface TaskClickListener {
-    void started(int taskId);
+    void started(String taskId);
 
-    void stopped(int taskId);
+    void stopped(String taskId);
 
-    void finished(int taskId);
+    void finished(String  taskId);
 
-    void longClick(int taskId);
+    void longClick(String taskId);
 }

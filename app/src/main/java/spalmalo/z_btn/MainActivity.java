@@ -5,12 +5,10 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -20,22 +18,19 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 
-import java.util.List;
+import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
-import io.realm.RealmResults;
 import spalmalo.z_btn.adapters.ListTasksAdapter;
 import spalmalo.z_btn.models.Task;
+import spalmalo.z_btn.models.TaskSession;
 
 public class MainActivity extends AppCompatActivity implements TaskClickListener {
 
     private ListTasksAdapter tasksAdapter;
     private ListTasksAdapter finishedTasksAdapter;
-    private List<Task> tasks;
-    private List<Task> tasksFinished;
     private RecyclerView.LayoutManager mLayoutManager;
     private RecyclerView.LayoutManager mLayoutManagerFinished;
     private MaterialDialog dialog, dialogDeleteTask;
@@ -63,24 +58,12 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
         ButterKnife.bind(this);
         initToolbar();
         realm = Realm.getDefaultInstance();
-        initRealmListener();
-
-        tasks = realm.where(Task.class)
-                .equalTo("status", Constants.TASK_STATUS_STARTED)
-                .or()
-                .equalTo("status", Constants.TASK_STATUS_STOPPED)
-                .findAll();
-        if (tasks.size() == 0) emptyList.setVisibility(View.VISIBLE);
-
-        tasksFinished = realm.where(Task.class)
-                .equalTo("status", Constants.TASK_STATUS_FINISHED)
-                .findAll();
         setupRecyclerView();
 
         finishedTaskText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (tasksFinished.size() == 0) {
+                if (finishedTasksAdapter.getItemCount() == 0) {
                     Toast.makeText(MainActivity.this, R.string.show_finish_task, Toast.LENGTH_SHORT).show();
                 }
                 listFinishedTask.setVisibility(listFinishedTask.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
@@ -109,13 +92,19 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
     private void setupRecyclerView() {
         mLayoutManager = new LinearLayoutManager(MainActivity.this, LinearLayoutManager.VERTICAL, false);
         tasksList.setLayoutManager(mLayoutManager);
-        tasksAdapter = new ListTasksAdapter(tasks, this);
+        tasksAdapter = new ListTasksAdapter(realm.where(Task.class)
+                .equalTo("status", Constants.TASK_STATUS_STARTED)
+                .or()
+                .equalTo("status", Constants.TASK_STATUS_STOPPED)
+                .findAllAsync(), this);
         tasksList.setAdapter(tasksAdapter);
         tasksList.setHasFixedSize(true);
 
         mLayoutManagerFinished = new LinearLayoutManager(MainActivity.this, LinearLayoutManager.VERTICAL, false);
         listFinishedTask.setLayoutManager(mLayoutManagerFinished);
-        finishedTasksAdapter = new ListTasksAdapter(tasksFinished, this);
+        finishedTasksAdapter = new ListTasksAdapter(realm.where(Task.class)
+                .equalTo("status", Constants.TASK_STATUS_FINISHED)
+                .findAll(), this);
         listFinishedTask.setAdapter(finishedTasksAdapter);
         listFinishedTask.setHasFixedSize(true);
     }
@@ -137,7 +126,6 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
                     }
 
                 })
-
                 .onNegative(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
@@ -162,36 +150,9 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
         dialog.show();
     }
 
-    private void initRealmListener() {
-        realm.where(Task.class)
-                .equalTo("status", Constants.TASK_STATUS_STARTED)
-                .or()
-                .equalTo("status", Constants.TASK_STATUS_STOPPED)
-                .findAll()
-                .addChangeListener(new RealmChangeListener<RealmResults<Task>>() {
-                    @Override
-                    public void onChange(RealmResults<Task> element) {
-                        emptyList.setVisibility(element.size() > 0 ? View.GONE : View.VISIBLE);
-                        tasks = element;
-                        tasksAdapter.notifyDataSetChanged();
-                    }
-                });
-        realm.where(Task.class)
-                .equalTo("status", Constants.TASK_STATUS_FINISHED)
-                .findAll()
-                .addChangeListener(new RealmChangeListener<RealmResults<Task>>() {
-                    @Override
-                    public void onChange(RealmResults<Task> element) {
-                        tasksFinished = element;
-                        finishedTasksAdapter.notifyDataSetChanged();
-                    }
-                });
-    }
-
     private void addNewTask(final String title) {
         realm.beginTransaction();
         final Task task = new Task();
-        task.setId(generateTaskId());
         task.setTitle(title);
         task.setStatus(Constants.TASK_STATUS_STOPPED);
         realm.commitTransaction();
@@ -203,19 +164,6 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
         });
     }
 
-    private int generateTaskId() {
-        RealmResults<Task> results = realm.where(Task.class).findAll();
-        if (results.size() > 0) {
-            int max = 0;
-            for (Task task : results) {
-                if (task.getId() > max) max = task.getId();
-            }
-            Log.e("log", "max id = " + max);
-            return ++max;
-        }
-        return 0;
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -223,33 +171,49 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
     }
 
     @Override
-    public void started(final int taskId) {
+    public void started(final String taskId) {
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
+                Task startedTask = realm.where(Task.class).equalTo("status", Constants.TASK_STATUS_STARTED).findFirst();
+                if (startedTask != null) {
+                    startedTask.setStatus(Constants.TASK_STATUS_STOPPED);
+                    startedTask.getLastSession().setEndDate(new Date());
+                    startedTask.setLastSession(null);
+                }
                 Task task = realm.where(Task.class).equalTo("id", taskId).findFirst();
                 task.setStatus(Constants.TASK_STATUS_STARTED);
+                TaskSession taskSession = realm.copyToRealm(new TaskSession());
+                taskSession.setTaskId(taskId);
+                taskSession.setStartDate(new Date());
+                task.setLastSession(taskSession);
             }
         });
     }
 
     @Override
-    public void stopped(final int taskId) {
+    public void stopped(final String taskId) {
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 Task task = realm.where(Task.class).equalTo("id", taskId).findFirst();
                 task.setStatus(Constants.TASK_STATUS_STOPPED);
+                task.getLastSession().setEndDate(new Date());
+                task.setLastSession(null);
             }
         });
     }
 
     @Override
-    public void finished(final int taskId) {
+    public void finished(final String taskId) {
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 Task task = realm.where(Task.class).equalTo("id", taskId).findFirst();
+                if (task.getLastSession() != null) {
+                    task.getLastSession().setEndDate(new Date());
+                    task.setLastSession(null);
+                }
                 task.setStatus(task.getStatus().equals(Constants.TASK_STATUS_FINISHED) ? Constants.TASK_STATUS_STOPPED : Constants.TASK_STATUS_FINISHED);
             }
         });
@@ -257,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements TaskClickListener
     }
 
     @Override
-    public void longClick(final int taskId) {
+    public void longClick(final String taskId) {
         dialogDeleteTask = new MaterialDialog.Builder(this)
                 .title("Delete task?")
                 .positiveText("Delete")

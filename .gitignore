@@ -38,3 +38,10 @@ captures/
 
 # Keystore files
 *.jks
+
+.idea/
+default.realm.management/
+
+*.realm
+*.realm.lock
+*.realm.note
